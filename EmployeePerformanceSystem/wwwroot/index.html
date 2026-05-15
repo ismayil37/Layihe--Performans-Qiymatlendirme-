@@ -242,7 +242,7 @@
             } catch (err) { console.error("Yükləmə xətası:", err); }
         }
 
-        // Fərdi Analiz Qrafiki
+        
         function draw(id, type, labels, data, label, color) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
@@ -255,7 +255,7 @@
                         borderColor: color,
                         backgroundColor: color + '22',
                         fill: true,
-                        pointBackgroundColor: color, // Nöqtənin içini rəngli edir
+                        pointBackgroundColor: color, 
                         pointBorderColor: color,
                         tension: 0.3
                     }]
@@ -268,7 +268,7 @@
             });
         }
 
-        // MÜQAYİSƏ QRAFİKİ (Sənin istədiyin Mavi vs Qırmızı rənglər)
+        
         function drawCompare(id, type, e1, e2, key, title) {
             if (charts[id]) charts[id].destroy();
             charts[id] = new Chart(document.getElementById(id), {
@@ -288,9 +288,9 @@
                         {
                             label: e2.firstName,
                             data: e2[key],
-                            borderColor: '#ff4d4d', // Qırmızı
+                            borderColor: '#ff4d4d', 
                             backgroundColor: 'rgba(255, 77, 77, 0.2)',
-                            pointBackgroundColor: '#ff4d4d', // Ağ nöqtəni ləğv edir
+                            pointBackgroundColor: '#ff4d4d', 
                             pointBorderColor: '#ff4d4d',
                             fill: true, tension: 0.3
                         }
