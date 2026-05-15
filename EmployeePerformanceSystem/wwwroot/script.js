@@ -2,18 +2,18 @@
 let curId = null;
 let charts = {};
 
-// 1. TEMA (DARK MODE) İDARƏSİ
+
 function toggleTheme() {
     const h = document.documentElement;
     const isDark = h.getAttribute('data-theme') === 'dark';
     h.setAttribute('data-theme', isDark ? 'light' : 'dark');
 
-    // Qrafiklərin rənglərini yeniləmək üçün
+    
     Chart.defaults.color = isDark ? '#212529' : '#e9ecef';
     if (curId) load();
 }
 
-// 2. TAB (BÖLMƏ) KEÇİDİ
+
 function tab(type) {
     document.getElementById('indArea').style.display = type === 'ind' ? 'block' : 'none';
     document.getElementById('compArea').style.display = type === 'comp' ? 'block' : 'none';
@@ -22,7 +22,7 @@ function tab(type) {
     document.getElementById('t2').className = type === 'comp' ? 'tab active' : 'tab';
 }
 
-// 3. MƏLUMATLARI BACKEND-DƏN YÜKLƏMƏK
+
 async function load() {
     try {
         const r = await fetch(API);
@@ -37,7 +37,7 @@ async function load() {
         s2.innerHTML = "";
 
         emps.forEach(e => {
-            // İşçi siyahısını yaradırıq
+            
             const d = document.createElement("div");
             d.className = `emp-item ${e.id === curId ? 'active' : ''}`;
             d.innerText = `${e.firstName} ${e.lastName}`;
@@ -47,19 +47,19 @@ async function load() {
             };
             L.appendChild(d);
 
-            // Müqayisə üçün select-ləri doldururuq
+            
             const o = `<option value="${e.id}">${e.firstName}</option>`;
             s1.innerHTML += o;
             s2.innerHTML += o;
         });
 
-        // Əgər işçi seçilibsə, qrafikləri və redaktə panelini göstər
+        
         if (curId) {
             const e = emps.find(x => x.id === curId);
             document.getElementById("editZ").style.display = "block";
             document.getElementById("curN").innerText = `${e.firstName} ${e.lastName} - İllik Analiz`;
 
-            // 12 aylıq qrafiklər
+            
             const labels = e.records.map(r => r.monthName);
             const performanceData = e.records.map(r => r.finalScore);
             const attendanceData = e.records.map(r => r.attendance);
@@ -72,9 +72,9 @@ async function load() {
     }
 }
 
-// 4. QRAFİK ÇƏKMƏK (BULANIQLIQ OLMADAN)
+
 function draw(id, type, labels, data, label) {
-    if (charts[id]) charts[id].destroy(); // Köhnə qrafiki silirik
+    if (charts[id]) charts[id].destroy(); 
 
     const ctx = document.getElementById(id).getContext('2d');
     charts[id] = new Chart(ctx, {
@@ -98,7 +98,7 @@ function draw(id, type, labels, data, label) {
     });
 }
 
-// 5. YENİ İŞÇİ ƏLAVƏ ETMƏK
+
 async function addEmp() {
     const fn = document.getElementById("fn").value;
     const ln = document.getElementById("ln").value;
@@ -116,7 +116,7 @@ async function addEmp() {
     load();
 }
 
-// 6. AYLIQ GÖSTƏRİCİLƏRİ YENİLƏMƏK
+
 async function upd() {
     if (!curId) return;
 
@@ -133,10 +133,10 @@ async function upd() {
         body: JSON.stringify(data)
     });
 
-    load(); // Qrafikləri yenilə
+    load(); 
 }
 
-// 7. MÜQAYİSƏ FUNKSİYASI (SON 5 AY)
+
 async function doComp() {
     const id1 = document.getElementById("s1").value;
     const id2 = document.getElementById("s2").value;
@@ -148,7 +148,7 @@ async function doComp() {
     draw('c4', 'radar', d.first.labels, d.first.attendanceHistory, d.first.firstName);
 }
 
-// 8. EXCEL İDXAL (IMPORT)
+
 async function importEx() {
     const fileInput = document.getElementById("fileInp");
     if (fileInput.files.length === 0) return;
@@ -165,5 +165,5 @@ async function importEx() {
     load();
 }
 
-// Səhifə açılanda işçiləri gətir
+
 load();
