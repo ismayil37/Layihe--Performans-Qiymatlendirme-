@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="az" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>EmployeePerformanceSystem 📊</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #1c1e21;
+            --primary: #0866ff;
+            --border: #dddfe2;
+        }
+
+        [data-theme='dark'] {
+            --bg: #18191a;
+            --card: #242526;
+            --text: #e4e6eb;
+            --primary: #4599ff;
+            --border: #3e4042;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            transition: 0.3s;
+        }
+
+        .navbar {
+            background: var(--card);
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-p {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+
+            .btn-p:hover {
+                opacity: 0.8;
+            }
+
+        .emp-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+            .emp-item.active {
+                border-left: 5px solid var(--primary);
+                background: rgba(67, 153, 255, 0.1);
+            }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: var(--border);
+            font-weight: bold;
+        }
+
+            .tab.active {
+                background: var(--primary);
+                color: white;
+            }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 15px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2>EmployeePerformanceSystem 📊</h2>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" style="background:#198754; color:white;" onclick="document.getElementById('fileInp').click()">📤 Excel İdxal</button>
+            <input type="file" id="fileInp" hidden onchange="importEx()">
+            <button class="btn" style="background:#6c757d; color:white;" onclick="window.location.href='http://localhost:5005/api/employees/export'">📥 İxrac</button>
+            <button class="btn" style="background:#f39c12; color:white;" onclick="toggleTheme()">🌓 Rejim</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="card">
+                <h3>Yeni İşçi</h3>
+                <input type="text" id="fn" placeholder="Ad">
+                <input type="text" id="ln" placeholder="Soyad">
+                <button class="btn btn-p" onclick="addEmp()">Əlavə Et</button>
+            </div>
+            <div class="card" id="list"></div>
+        </div>
+
+        <div class="main">
+            <div class="tabs">
+                <div class="tab active" id="t1" onclick="switchTab('ind')">Fərdi Analiz (12 Ay)</div>
+                <div class="tab" id="t2" onclick="switchTab('comp')">Müqayisə (Son 5 Ay)</div>
+            </div>
+
+            <div id="indArea">
+                <div class="card" id="editZ" style="display:none">
+                    <h3 id="curN" style="margin-top:0">İşçi Seçilməyib</h3>
+                    <div style="display:grid; grid-template-columns: repeat(4, 1fr) auto; gap:10px; align-items:end">
+                        <div><label>Ay:</label><select id="mI"><option value="0">Yanvar</option><option value="1">Fevral</option><option value="2">Mart</option><option value="3">Aprel</option><option value="4">May</option><option value="5">İyun</option><option value="6">İyul</option><option value="7">Avqust</option><option value="8">Sentyabr</option><option value="9">Oktyabr</option><option value="10">Noyabr</option><option value="11">Dekabr</option></select></div>
+                        <div><label>Task:</label><input type="number" id="t" value="0"></div>
+                        <div><label>Keyfiyyət:</label><input type="number" id="q" value="0"></div>
+                        <div><label>Davamiyyət:</label><input type="number" id="a" value="0"></div>
+                        <button class="btn btn-p" style="width:80px" onclick="upd()">OK</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-box"><canvas id="c1"></canvas></div>
+                    <div class="chart-box"><canvas id="c2"></canvas></div>
+                </div>
+            </div>
+
+            <div id="compArea" style="display:none">
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <select id="s1" style="max-width:200px"></select>
+                        <strong style="font-size: 20px;">VS</strong>
+                        <select id="s2" style="max-width:200px"></select>
+                        <button class="btn btn-p" style="width:150px" onclick="doComp()">Müqayisə Et</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-box"><canvas id="c3"></canvas></div>
+                    <div class="chart-box"><canvas id="c4"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:5005/api/employees";
+        let curId = null, charts = {};
+
+        function toggleTheme() {
+            const h = document.documentElement;
+            const newTheme = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            h.setAttribute('data-theme', newTheme);
+            if (curId) load();
+        }
+
+        function switchTab(type) {
+            document.getElementById('indArea').style.display = type === 'ind' ? 'block' : 'none';
+            document.getElementById('compArea').style.display = type === 'comp' ? 'block' : 'none';
+            document.getElementById('t1').className = type === 'ind' ? 'tab active' : 'tab';
+            document.getElementById('t2').className = type === 'comp' ? 'tab active' : 'tab';
+        }
+
+        async function load() {
+            try {
+                const r = await fetch(API);
+                const emps = await r.json();
+                const L = document.getElementById("list"), s1 = document.getElementById("s1"), s2 = document.getElementById("s2");
+
+                L.innerHTML = "<h3>İşçilər</h3>"; s1.innerHTML = ""; s2.innerHTML = "";
+                emps.forEach(e => {
+                    const d = document.createElement("div");
+                    d.className = `emp-item ${e.id === curId ? 'active' : ''}`;
+                    d.innerText = `${e.firstName} ${e.lastName}`;
+                    d.onclick = () => { curId = e.id; load(); };
+                    L.appendChild(d);
+
+                    const o = `<option value="${e.id}">${e.firstName}</option>`;
+                    s1.innerHTML += o; s2.innerHTML += o;
+                });
+
+                if (curId) {
+                    const e = emps.find(x => x.id === curId);
+                    document.getElementById("editZ").style.display = "block";
+                    document.getElementById("curN").innerText = `${e.firstName} ${e.lastName} - İllik Analiz`;
+
+                    // Fərdi qrafiklərdə ağ nöqtələri yox etmək üçün pointBackgroundColor təyin edirik
+                    draw('c1', 'line', e.records.map(r => r.monthName), e.records.map(r => r.finalScore), 'Performans %', '#4599ff');
+                    draw('c2', 'radar', e.records.map(r => r.monthName), e.records.map(r => r.attendance), 'Davamiyyət %', '#2a9d8f');
+                }
+            } catch (err) { console.error("Yükləmə xətası:", err); }
+        }
+
+        // Fərdi Analiz Qrafiki
+        function draw(id, type, labels, data, label, color) {
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: type,
+                data: {
+                    labels,
+                    datasets: [{
+                        label,
+                        data,
+                        borderColor: color,
+                        backgroundColor: color + '22',
+                        fill: true,
+                        pointBackgroundColor: color, // Nöqtənin içini rəngli edir
+                        pointBorderColor: color,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: type === 'line' ? { y: { min: 0, max: 100 } } : { r: { min: 0, max: 100 } }
+                }
+            });
+        }
+
+        // MÜQAYİSƏ QRAFİKİ (Sənin istədiyin Mavi vs Qırmızı rənglər)
+        function drawCompare(id, type, e1, e2, key, title) {
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: type,
+                data: {
+                    labels: e1.labels,
+                    datasets: [
+                        {
+                            label: e1.firstName,
+                            data: e1[key],
+                            borderColor: '#0d6efd', // Mavi
+                            backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                            pointBackgroundColor: '#0d6efd', // Ağ nöqtəni ləğv edir
+                            pointBorderColor: '#0d6efd',
+                            fill: true, tension: 0.3
+                        },
+                        {
+                            label: e2.firstName,
+                            data: e2[key],
+                            borderColor: '#ff4d4d', // Qırmızı
+                            backgroundColor: 'rgba(255, 77, 77, 0.2)',
+                            pointBackgroundColor: '#ff4d4d', // Ağ nöqtəni ləğv edir
+                            pointBorderColor: '#ff4d4d',
+                            fill: true, tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { title: { display: true, text: title, color: '#e4e6eb' } },
+                    scales: type === 'line' ? { y: { min: 0, max: 100 } } : { r: { min: 0, max: 100 } }
+                }
+            });
+        }
+
+        async function doComp() {
+            const id1 = document.getElementById("s1").value;
+            const id2 = document.getElementById("s2").value;
+            const r = await fetch(`${API}/compare?id1=${id1}&id2=${id2}`);
+            const d = await r.json();
+
+            drawCompare('c3', 'line', d.first, d.second, 'performanceHistory', 'Performans Müqayisəsi (Son 5 Ay)');
+            drawCompare('c4', 'radar', d.first, d.second, 'attendanceHistory', 'Davamiyyət Müqayisəsi (Son 5 Ay)');
+        }
+
+        async function addEmp() {
+            const fn = document.getElementById("fn").value, ln = document.getElementById("ln").value;
+            if (!fn) return alert("Ad yazın!");
+            await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ firstName: fn, lastName: ln }) });
+            load();
+        }
+
+        async function upd() {
+            const data = {
+                monthIndex: parseInt(document.getElementById("mI").value),
+                task: parseFloat(document.getElementById("t").value || 0),
+                quality: parseFloat(document.getElementById("q").value || 0),
+                attendance: parseFloat(document.getElementById("a").value || 0)
+            };
+            await fetch(`${API}/${curId}/update-single-month`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+            load();
+        }
+
+        async function importEx() {
+            const fd = new FormData(); fd.append("file", document.getElementById("fileInp").files[0]);
+            await fetch(`${API}/import`, { method: "POST", body: fd });
+            load();
+        }
+
+        load();
+    </script>
+</body>
+</html>
